@@ -1,0 +1,101 @@
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("io.swagger:swagger-codegen:2.2.2")
+	}
+}
+
+plugins {
+	id "au.com.dius.pact" version "3.5.14"
+	id "org.springframework.boot"
+}
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:Dalston.SR4")
+	}
+}
+
+ext {
+	prNumber = project.properties['PR_NUMBER']
+	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
+}
+
+description = ''
+dependencies {
+	compile("org.springframework.boot:spring-boot-starter-web")
+	compile("org.springframework.boot:spring-boot-starter-actuator")
+	compile('net.logstash.logback:logstash-logback-encoder:3.5')
+	compile group: 'au.com.dius', name: 'pact-jvm-provider-maven_2.12', version:'3.5.12'
+
+	// test dependencies
+	testCompile("org.springframework.boot:spring-boot-starter-test")
+
+	testCompile "org.springframework.boot:spring-boot-starter-test"
+	testCompile "org.springframework.boot:spring-boot"
+
+	generatedCompile 'org.springframework.boot:spring-boot-starter-data-rest:2.0.1.RELEASE'
+	generatedCompile 'io.springfox:springfox-swagger2:2.5.0'
+	generatedCompile 'io.springfox:springfox-swagger-ui:2.5.0'
+
+}
+
+sourceSets {
+	generated {
+		compileClasspath = configurations.generatedCompile
+	}
+	main {
+		compileClasspath += generated.output
+		runtimeClasspath += generated.output
+	}
+	test {
+		compileClasspath += generated.output
+		runtimeClasspath += generated.output
+	}
+}
+
+pact {
+    publish {
+        pactDirectory = "$buildDir/pacts"
+        pactBrokerUrl = 'http://192.168.64.11:32033'
+		tags = [pactBrokerTag]
+    }
+}
+
+
+import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.DefaultGenerator
+
+def swaggerSourceFile = '../shared/provider-api-spec.yml'
+def swaggerTargetFolder = 'src/generated/java'
+
+task generateApi {
+	inputs.file("$projectDir/$swaggerSourceFile")
+	outputs.dir("$projectDir/$swaggerTargetFolder")
+	doLast {
+		def config = new CodegenConfigurator()
+		config.setInputSpec("file:///$projectDir/$swaggerSourceFile")
+		config.setOutputDir("$projectDir")
+		config.setLang('spring')
+		config.setAdditionalProperties([
+				'interfaceOnly' : 'true',
+				'apiPackage'    : 'com.appdirect.provider.api',
+				'modelPackage'  : 'com.appdirect.provider.model',
+				'sourceFolder'  : swaggerTargetFolder
+		])
+		new DefaultGenerator().opts(config.toClientOptInput()).generate()
+	}
+}
+
+clean.doFirst {
+	delete("${projectDir}/$swaggerTargetFolder")
+}
+
+
+compileGeneratedJava.dependsOn "generateApi"
+classes.dependsOn generatedClasses
+compileJava.dependsOn compileGeneratedJava
+ideaModule.dependsOn "generateApi"

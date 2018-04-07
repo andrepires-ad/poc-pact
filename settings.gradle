@@ -1,0 +1,6 @@
+rootProject.name = 'poc-pact'
+include ':consumer-service'
+include ':provider-service'
+
+project(':consumer-service').projectDir = "$rootDir/consumer-service" as File
+project(':provider-service').projectDir = "$rootDir/provider-service" as File

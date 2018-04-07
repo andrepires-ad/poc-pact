@@ -1,0 +1,52 @@
+swagger: '2.0'
+info:
+  version: '0.1'
+  title: 'Provider API'
+  description: 'The Provider API'
+
+schemes:
+ - https
+consumes:
+ - application/json
+produces:
+ - application/json
+
+paths:
+  /products:
+    get:
+      tags:
+        - products
+      summary: Get product list
+      description: Returns a product list.
+      operationId: getProducts
+      responses:
+        200:
+          $ref: '#/responses/ProductsResponse'
+
+#######################################################
+# MODELS
+#######################################################
+
+definitions:
+  ProductWsDTO:
+    description: 'The Product model'
+    type: object
+    properties:
+      id:
+        description: 'The product id'
+        type: string
+      name:
+        description: 'The product name'
+        type: string
+
+responses:
+  ProductsResponse:
+    description: The /products response
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/ProductWsDTO'
+
+
+host: virtserver.swaggerhub.com
+basePath: /team-support/provider-service/0.1

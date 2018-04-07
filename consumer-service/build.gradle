@@ -1,0 +1,27 @@
+
+plugins {
+    id "au.com.dius.pact" version "3.5.14"
+}
+
+ext {
+    prNumber = project.properties['PR_NUMBER']
+    pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
+}
+
+pact {
+    publish {
+        pactDirectory = "$buildDir/pacts"
+        pactBrokerUrl = 'http://192.168.64.11:32033'
+        tags = [pactBrokerTag]
+    }
+}
+
+
+description = ''
+
+dependencies {
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter', version:'1.5.4.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version:'1.5.4.RELEASE'
+    testCompile group: 'org.springframework', name: 'spring-test', version:'4.3.9.RELEASE'
+    testCompile group: 'au.com.dius', name: 'pact-jvm-consumer-junit_2.12', version:'3.5.12'
+}
