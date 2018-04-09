@@ -1,5 +1,9 @@
 buildscript {
+	ext {
+		lombokVersion = '1.16.20'
+	}
 	repositories {
+		maven { url "https://artifactory.appdirect.tools/artifactory/repo" }
 		mavenCentral()
 	}
 	dependencies {

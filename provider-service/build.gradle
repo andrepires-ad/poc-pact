@@ -5,6 +5,7 @@ buildscript {
 	}
 	dependencies {
 		classpath("io.swagger:swagger-codegen:2.2.2")
+		classpath group: 'au.com.dius', name: 'pact-jvm-provider-gradle_2.12', version: '3.5.14'
 	}
 }
 
@@ -29,7 +30,6 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework.boot:spring-boot-starter-actuator")
 	compile('net.logstash.logback:logstash-logback-encoder:3.5')
-	compile group: 'au.com.dius', name: 'pact-jvm-provider-maven_2.12', version:'3.5.12'
 
 	// test dependencies
 	testCompile("org.springframework.boot:spring-boot-starter-test")
@@ -55,14 +55,6 @@ sourceSets {
 		compileClasspath += generated.output
 		runtimeClasspath += generated.output
 	}
-}
-
-pact {
-    publish {
-        pactDirectory = "$buildDir/pacts"
-        pactBrokerUrl = 'http://192.168.64.11:32033'
-		tags = [pactBrokerTag]
-    }
 }
 
 

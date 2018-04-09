@@ -1,11 +1,28 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+		classpath group: 'au.com.dius', name: 'pact-jvm-provider-gradle_2.12', version: '3.5.14'
+	}
+}
 
 plugins {
-    id "au.com.dius.pact" version "3.5.14"
+	id "au.com.dius.pact" version "3.5.14"
+	id "org.springframework.boot"
+}
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:Dalston.SR4")
+	}
 }
 
 ext {
-    prNumber = project.properties['PR_NUMBER']
-    pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
+	prNumber = project.properties['PR_NUMBER']
+	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
+	retrofitVersion = "2.3.0"
+	javaxValidationVersion = '1.1.0.Final'
 }
 
 pact {
@@ -20,8 +37,38 @@ pact {
 description = ''
 
 dependencies {
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter', version:'1.5.4.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version:'1.5.4.RELEASE'
-    testCompile group: 'org.springframework', name: 'spring-test', version:'4.3.9.RELEASE'
-    testCompile group: 'au.com.dius', name: 'pact-jvm-consumer-junit_2.12', version:'3.5.12'
+	compileOnly("org.projectlombok:lombok:${lombokVersion}")
+
+	compile("org.springframework.boot:spring-boot-starter-web")
+	compile("org.springframework.boot:spring-boot-starter-actuator")
+	compile('net.logstash.logback:logstash-logback-encoder:3.5')
+	compile('au.com.dius:pact-jvm-consumer-junit_2.12:3.5.14')
+
+	// retrofit
+	compileOnly("javax.validation:validation-api:${javaxValidationVersion}")
+	compile("com.squareup.retrofit2:retrofit:${retrofitVersion}")
+	compile("com.squareup.retrofit2:converter-jackson:${retrofitVersion}")
+
+	// test dependencies
+	testCompile("org.springframework.boot:spring-boot-starter-test")
+
+	testCompile "org.springframework.boot:spring-boot-starter-test"
+	testCompile "org.springframework.boot:spring-boot"
+
+	generatedCompile 'org.springframework.boot:spring-boot-starter-data-rest:2.0.1.RELEASE'
 }
+
+sourceSets {
+	generated {
+		compileClasspath = configurations.generatedCompile
+	}
+	main {
+		compileClasspath += generated.output
+		runtimeClasspath += generated.output
+	}
+	test {
+		compileClasspath += generated.output
+		runtimeClasspath += generated.output
+	}
+}
+
