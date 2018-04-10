@@ -18,7 +18,7 @@ To publish the contract into the Pact Broker, you must execute the following com
    
 ```jshelllanguage
 $ cd consumer-service
-$ ./gradlew publishPact 
+$ ./gradlew pactPublish 
 ```
 
 ### Pipeline observation

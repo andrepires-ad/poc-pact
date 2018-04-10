@@ -1,0 +1,142 @@
+#!/usr/bin/env groovy
+
+@Library('jenkins-shared-library') _
+
+/**
+ * Jenkinsfile Scripted pipeline
+ */
+
+def PR_BRANCH_REGEX = /(pr|PR)-\d+$/
+
+def DOCKER_REGISTRY = "docker.appdirect.tools"
+def CREDENTIALS_DOCKER_RW = 'docker-rw'
+def CREDENTIALS_ARTIFACTORY = 'jenkins-artifactory-credentials'
+def CREDENTIALS_GITHUB = 'jenkins-ssh-git'
+def CREDENTIALS_SONAR_GITHUB = "sonar-github-token-text"
+
+def SONAR_SERVER_NAME = 'Sonar v2'
+def GITHUB_REPO_OWNER = "AppDirect"
+def GITHUB_REPO_NAME = "provider-service"
+
+node {
+    stage('Checkout') {
+        echo 'Checking out from repository...'
+        checkout scm: [
+                $class: 'GitSCM',
+                branches: scm.branches,
+                userRemoteConfigs: scm.userRemoteConfigs,
+                extensions: [
+                        [$class: 'CloneOption', noTags: false],
+                        [$class: 'LocalBranch', localBranch: "**"]
+                ]
+        ]
+        echo sh(returnStdout: true, script: 'env')
+    }
+
+    stage('Setup') {
+        echo 'Prepare Gradle properties'
+        withPullRequestBranch {
+                sh "echo \"PR_NUMBER=$env.BRANCH_NAME\" >> gradle.properties"
+        }
+
+        withCredentials([
+                [$class: 'UsernamePasswordMultiBinding', credentialsId: CREDENTIALS_DOCKER_RW,
+                 usernameVariable: 'DOCKER_RW_USER',
+                 passwordVariable: 'DOCKER_RW_PASSWD']
+        ]) {
+            echo 'Docker Registry Login'
+            sh "docker login --username ${DOCKER_RW_USER} --password ${DOCKER_RW_PASSWD} ${DOCKER_REGISTRY}"
+        }
+        withCredentials([
+                [$class: 'UsernamePasswordMultiBinding', credentialsId: CREDENTIALS_ARTIFACTORY,
+                 usernameVariable: 'ARTIFACTORY_USER',
+                 passwordVariable: 'ARTIFACTORY_PASSWD']
+        ]) {
+            sh "echo \"ARTIFACTORY_USER=$ARTIFACTORY_USER\" >> gradle.properties"
+            sh "echo \"ARTIFACTORY_PASSWD=$ARTIFACTORY_PASSWD\" >> gradle.properties"
+        }
+    }
+
+    stage('Build') {
+        echo 'Building project without tests...'
+        sh "./gradlew printMetadata"
+        sh "./gradlew clean build -x test"
+    }
+
+	stage('Tests') {
+        try {
+            sh './gradlew test'
+            // sh './gradlew integTest'
+            // sh './gradlew codeCoverage testReport'
+            // optional step to have code coverage gate
+            // sh './gradlew jacocoTestCoverageVerification'
+        } finally {
+            junit '**/build/test-results/**/*.xml'
+            archiveArtifacts artifacts: 'build/reports/jacoco/jacocoRootReport/html/**/*'
+            archiveArtifacts artifacts: 'build/reports/allTests/**/*'
+        }
+	}
+
+    stage('Static Analysis') {
+        withSonarQubeEnvExt([
+                sonarQubeServer: SONAR_SERVER_NAME,
+                githubCredentialsId: CREDENTIALS_SONAR_GITHUB,
+                repositoryOwner: GITHUB_REPO_OWNER,
+                repositoryName: GITHUB_REPO_NAME,
+                pullRequestRegex: PR_BRANCH_REGEX,
+                sonarExtraParamsVariable: "AD_SONARQUBE_EXTRA_PARAMS"
+        ]) {
+            // requires SonarQube Scanner for Gradle 2.1+
+            // It's important to add --info because of SONARJNKNS-281
+            def jacocoCoverageFile = "./build/jacoco/jacocoMerge.exec"
+            def args = "${AD_SONARQUBE_EXTRA_PARAMS} -Dsonar.jacoco.reportPath=${jacocoCoverageFile} -Dsonar.jacoco.reportPaths=${jacocoCoverageFile} -Dsonar.groovy.jacoco.reportPath=${jacocoCoverageFile}"
+            sh "./gradlew --info sonarqube ${args}"
+        }
+    }
+
+
+    stage('Verify Pact contracts') {
+        // stage to be performed by providers and it should be performed on all branches
+        // Verifies the contracts published by all the consumers
+        withMasterBranch {
+            try {
+                sh './gradlew pactVerify'
+            } finally {
+                junit '**/build/test-results/**/*.xml'
+            }
+        }
+    }
+
+    /**
+     * If current branch is the 'master' branch, then it will ask about the release scope.
+     * An input will timeout after 30 seconds, and the result release scope is "", which
+     * will just continue with the last SNAPSHOT development version.
+     */
+    stage('Release Scope') {
+        echo "Release scope and versioning. Conditional to be the master branch"
+        withMasterBranch {
+            releaseScope([
+                    variable: "AD_RELEASE_SCOPE"
+            ]) {
+                sh "echo release scope selected: ${AD_RELEASE_SCOPE}"
+                def releaseScopeParam = AD_RELEASE_SCOPE == "" ? "" : "-Prelease.scope=${AD_RELEASE_SCOPE}"
+                withCredentials([file(credentialsId: CREDENTIALS_GITHUB, variable: 'GITHUB_SSH_KEY')]) {
+                    sh "./gradlew release -Prelease.disableChecks -Prelease.pushTagsOnly ${releaseScopeParam} -Dorg.ajoberstar.grgit.auth.ssh.private=$GITHUB_SSH_KEY --stacktrace"
+                    sh "./gradlew clean build -x test"
+                }
+            }
+        }
+    }
+
+    stage('Artifacts') {
+        echo 'Publish docker image'
+        sh "./gradlew dockerPush"
+
+        echo 'Publish artifacts'
+        sh "./gradlew publish "
+
+        sh "./gradlew printMetadata"
+    }
+
+
+}
