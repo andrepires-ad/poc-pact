@@ -9,6 +9,7 @@ buildscript {
 	}
 	dependencies {
 		classpath group: 'au.com.dius', name: 'pact-jvm-provider-gradle_2.12', version: '3.5.14'
+		// PACT
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE")
 	}
 }
@@ -16,6 +17,7 @@ buildscript {
 plugins {
 	id 'java'
 	id 'idea'
+	// PACT
 	id "au.com.dius.pact" version "3.5.14"
 }
 
@@ -44,21 +46,20 @@ def getDockerTags() {
 
 ext {
 	prNumber = project.properties['PR_NUMBER']
-	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
 	dockerRegistry = "docker.appdirect.tools"
 	artifactVersion = project.version.toString()
 	dockerName = "${dockerRegistry}/appdirect-pact-sample/consumer-service"
 	dockerTags = getDockerTags()
+
+	// PACT
+	pactBrokerHost = "192.168.64.16"
+	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
+	pactBrokerPort = 32033
 }
-
-
-configurations {
-	generatedCompile
-}
-
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
 dependencies {
 	compileOnly("org.projectlombok:lombok:${lombokVersion}")
 
@@ -73,11 +74,12 @@ dependencies {
 
 	// test dependencies
 	testCompile("org.springframework.boot:spring-boot-starter-test")
-	testCompile('au.com.dius:pact-jvm-consumer-junit_2.12:3.5.14')
 	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.springframework.boot:spring-boot"
 
-	generatedCompile 'org.springframework.boot:spring-boot-starter-data-rest:2.0.1.RELEASE'
+	// PACT LIB
+	testCompile('au.com.dius:pact-jvm-consumer-junit_2.12:3.5.14')
+
 }
 
 tasks.withType(JavaCompile) {
@@ -88,21 +90,6 @@ repositories {
 	mavenLocal()
 	maven { url "http://repo.maven.apache.org/maven2" }
 	jcenter()
-}
-
-
-sourceSets {
-	generated {
-		compileClasspath = configurations.generatedCompile
-	}
-	main {
-		compileClasspath += generated.output
-		runtimeClasspath += generated.output
-	}
-	test {
-		compileClasspath += generated.output
-		runtimeClasspath += generated.output
-	}
 }
 
 apply from: 'build.docker.gradle'

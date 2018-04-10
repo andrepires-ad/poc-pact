@@ -1,8 +1,5 @@
 
 // PACT
-def pactBrokerHost = "192.168.64.16"
-def pactBrokerPort = 32033
-
 def appHost = "localhost"
 def appPort = "9090"
 
@@ -13,7 +10,10 @@ task startTheApp {
 	doLast {
 		// wait until container is ready to receive requests
 		def ready = false
-		while (!ready) {
+		def maxTryCount = 30
+		def tryCount = 0
+		while (!ready && tryCount < maxTryCount) {
+			tryCount++
 			try {
 				Thread.sleep(1000)
 				def connection = new URL("http://${appHost}:${appPort}/health").openConnection() as HttpURLConnection
@@ -39,6 +39,7 @@ pact {
 		"provider-service" {
 			startProviderTask = startTheApp
 			terminateProviderTask = killTheApp
+			stateChangeUrl = url("http://${appHost}:${appPort}/pactcontracts/states")
 			protocol = 'http'
 			host = appHost
 			port = appPort

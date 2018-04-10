@@ -20,15 +20,17 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
 public class ConsumerProductsTest {
-
-	private static final String PACT_REQUEST = "Pact-Request";
 
 	@Rule
     public PactProviderRuleMk2 productsRule = new PactProviderRuleMk2("provider-service", "localhost", 8080, this);
@@ -43,45 +45,46 @@ public class ConsumerProductsTest {
 	}
 
 	@Pact(consumer="consumer-service", provider="provider-service")
-    public RequestResponsePact createFragment(PactDslWithProvider builder) throws JsonProcessingException {
+	public RequestResponsePact createFragments(PactDslWithProvider builder) throws JsonProcessingException {
 
-        final Map<String, String> headers = ImmutableMap.<String, String>builder()
+		final Map<String, String> headers = ImmutableMap.<String, String>builder()
 				.put("Content-Type", "application/json")
-				.put(PACT_REQUEST, PACT_REQUEST)
 				.build();
 
 		return builder
-                .given("test state")
-
-				.uponReceiving("get /products")
-                .path("/products")
-                .method("GET")
-                .headers(headers)
-
-                .willRespondWith()
-                .status(200)
-                .body(new ObjectMapper().writeValueAsString(getProductWsDTOS()))
+				//
+				.given("products in ascending order")
+				.uponReceiving("request for products in ascending order")
+				.path("/products")
+				.method("GET")
 				.headers(headers)
-                .toPact();
-    }
+				.willRespondWith()
+				.status(200)
+				.body(new ObjectMapper().writeValueAsString(
+						getProductWsDTOS().stream().sorted(comparing(ProductWsDTO::getId)).collect(toList())
+				))
+				.headers(headers)
+
+				.uponReceiving("request for products in descending order")
+				.path("/products")
+				.method("GET")
+				.headers(headers)
+				.willRespondWith()
+				.status(200)
+				.body(new ObjectMapper().writeValueAsString(
+						getProductWsDTOS().stream().sorted(comparing(ProductWsDTO::getId).reversed()).collect(toList())
+				))
+				.headers(headers)
+				.toPact();
+	}
 
 	@Test
     @PactVerification("provider-service")
     public void runTest() throws IOException {
 		final ProductsApiImpl productsApi = new ProductsApiImpl();
-		productsApi.setInterceptors(Sets.newHashSet(
-				chain -> {
-					Request request = chain.request().newBuilder()
-							.addHeader(PACT_REQUEST, PACT_REQUEST)
-							.build();
-					return chain.proceed(request);
-				}
-		));
 		productsApi.setBaseUrl(productsRule.getConfig().url());
 
-		Call<List<ProductWsDTO>> productsCall = productsApi.getProducts();
-
-		List<ProductWsDTO> list = productsCall.execute().body();
+		List<ProductWsDTO> list = productsApi.getProducts().execute().body();
 
 		assertTrue(list.size() > 0);
 		assertEquals(list.size(), getProductWsDTOS().size());

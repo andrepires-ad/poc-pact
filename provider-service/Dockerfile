@@ -12,6 +12,7 @@ ENV XMS="-Xms256m"
 ENV XMX="-Xmx256m"
 ENV METASPACE="-XX:MaxMetaspaceSize=96m"
 ENV BASE_JAVA_OPTS="-XX:NativeMemoryTracking=summary"
+ENV PACT_TEST=false
 
 ENV JAVA_OPTS="$BASE_JAVA_OPTS $XMS $XMX $METASPACE"
 ENV EXTRA_ARGS=""
@@ -24,4 +25,4 @@ EXPOSE 9090
 
 # Expose Management endpointson port 9091
 EXPOSE 9091
-ENTRYPOINT [ "sh", "-c", "exec java -server $JAVA_OPTS -jar $WORKSPACE/provider-service.jar $EXTRA_ARGS" ]
+ENTRYPOINT [ "sh", "-c", "exec java -server $JAVA_OPTS -DPactTest=$PACT_TEST -jar $WORKSPACE/provider-service.jar $EXTRA_ARGS" ]

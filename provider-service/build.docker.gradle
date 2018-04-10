@@ -46,8 +46,9 @@ task dockerRunDaemon {
 	dependsOn dockerBuild
 	doLast {
 		def buildArgs = [
-				"run", "--name", containerName, "-d", "-p", "9090:9090", "${dockerName}:${artifactVersion}"
+				"run", "--name", containerName, "-e", "PACT_TEST=${pactTest}", "-p", "9090:9090", "${dockerName}:${artifactVersion}"
 		]
+		println buildArgs
 		exec {
 			executable 'docker'
 			args buildArgs

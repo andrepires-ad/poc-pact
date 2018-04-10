@@ -48,6 +48,10 @@ ext {
 	artifactVersion = project.version.toString()
 	dockerName = "${dockerRegistry}/appdirect-pact-sample/provider-service"
 	dockerTags = getDockerTags()
+
+	pactTest = project.properties['PACT_TEST'] ? project.properties['PACT_TEST'] : "false"
+	pactBrokerHost = "192.168.64.16"
+	pactBrokerPort = 32033
 }
 
 configurations {

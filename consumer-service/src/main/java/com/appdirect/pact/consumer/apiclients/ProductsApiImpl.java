@@ -20,21 +20,13 @@ public class ProductsApiImpl implements ProductsApi {
 	@Value("${provider.url}")
 	private String baseUrl;
 
-	@Autowired
-	private Set<Interceptor> interceptors;
-
 	@Override
 	public Call<List<ProductWsDTO>> getProducts() {
 
 
 		OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
 
-		getInterceptors().stream().forEach(interceptor -> {
-			builder.addInterceptor(interceptor);
-		});
-
 		OkHttpClient client = builder.build();
-
 
 		Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(getBaseUrl())
@@ -55,11 +47,4 @@ public class ProductsApiImpl implements ProductsApi {
 		this.baseUrl = baseUrl;
 	}
 
-	public Set<Interceptor> getInterceptors() {
-		return interceptors;
-	}
-
-	public void setInterceptors(Set<Interceptor> interceptors) {
-		this.interceptors = interceptors;
-	}
 }
