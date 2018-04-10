@@ -1,39 +1,49 @@
 
 // PACT
+def pactBrokerHost = "192.168.64.16"
+def pactBrokerPort = 32033
+
+def appHost = "localhost"
+def appPort = "9090"
+
 
 // This will be called before the provider task
-//task startTheApp {
-//
-//}
-
-// This will be called after the provider task
-//task killTheApp {
-//
-//}
-
-pact {
-	serviceProviders {
-//		startProviderTask = startTheApp
-//		terminateProviderTask = killTheApp
-
-		"provider-service" {
-			protocol = 'http'
-			host = 'localhost'
-			port = '8080'
-			hasPactsFromPactBroker(getPactBrokerEndpoint())
+task startTheApp {
+	dependsOn "dockerRunDaemon"
+	doLast {
+		// wait until container is ready to receive requests
+		def ready = false
+		while (!ready) {
+			try {
+				Thread.sleep(1000)
+				def connection = new URL("http://${appHost}:${appPort}/health").openConnection() as HttpURLConnection
+				connection.setRequestProperty( 'Accept', 'application/json' )
+				if (connection.responseCode == 200) {
+					ready = true
+				}
+			} catch (Exception e) {
+				print "*"
+			}
 		}
 	}
 }
 
-String getPactBrokerEndpoint() {
-	return "http://" + getPactBrokerHost() + ":" + getPactBrokerPort()
+
+// This will be called after the provider task
+task killTheApp {
+	dependsOn "dockerStop"
 }
 
-int getPactBrokerPort() {
-	return 32033;
+pact {
+	serviceProviders {
+		"provider-service" {
+			startProviderTask = startTheApp
+			terminateProviderTask = killTheApp
+			protocol = 'http'
+			host = appHost
+			port = appPort
+			hasPactsFromPactBroker("http://" + pactBrokerHost + ":" + pactBrokerPort)
+		}
+	}
 }
 
-
-String getPactBrokerHost() {
-	return "192.168.64.16"
-}

@@ -38,3 +38,32 @@ task dockerPush {
 		}
 	}
 }
+
+
+def containerName = "provider-service-container"
+
+task dockerRunDaemon {
+	dependsOn dockerBuild
+	doLast {
+		def buildArgs = [
+				"run", "--name", containerName, "-d", "-p", "9090:9090", "${dockerName}:${artifactVersion}"
+		]
+		exec {
+			executable 'docker'
+			args buildArgs
+		}
+	}
+}
+
+task dockerStop {
+	doLast {
+		exec {
+			executable 'docker'
+			args "stop", containerName
+		}
+		exec {
+			executable 'docker'
+			args "rm", containerName
+		}
+	}
+}
