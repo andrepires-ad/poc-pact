@@ -64,17 +64,6 @@ public class ConsumerProductsTest {
 						getProductWsDTOS().stream().sorted(comparing(ProductWsDTO::getId)).collect(toList())
 				))
 				.headers(headers)
-
-				.uponReceiving("request for products in descending order")
-				.path("/products")
-				.method("GET")
-				.headers(headers)
-				.willRespondWith()
-				.status(200)
-				.body(new ObjectMapper().writeValueAsString(
-						getProductWsDTOS().stream().sorted(comparing(ProductWsDTO::getId).reversed()).collect(toList())
-				))
-				.headers(headers)
 				.toPact();
 	}
 
