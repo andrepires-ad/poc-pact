@@ -1,0 +1,41 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("io.swagger:swagger-codegen:2.2.2")
+	}
+}
+
+import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.DefaultGenerator
+
+def swaggerSourceFile = 'src/main/resources/api-spec.yml'
+def swaggerTargetFolder = 'src/generated/java'
+
+task generateApi {
+	inputs.file("$projectDir/$swaggerSourceFile")
+	outputs.dir("$projectDir/$swaggerTargetFolder")
+	doLast {
+		def config = new CodegenConfigurator()
+		config.setInputSpec("file:///$projectDir/$swaggerSourceFile")
+		config.setOutputDir("$projectDir")
+		config.setLang('spring')
+		config.setAdditionalProperties([
+				'interfaceOnly' : 'true',
+				'apiPackage'    : 'com.appdirect.provider.api',
+				'modelPackage'  : 'com.appdirect.provider.model',
+				'sourceFolder'  : swaggerTargetFolder
+		])
+		new DefaultGenerator().opts(config.toClientOptInput()).generate()
+	}
+}
+
+clean.doFirst {
+	delete("${projectDir}/$swaggerTargetFolder")
+}
+
+compileGeneratedJava.dependsOn "generateApi"
+classes.dependsOn generatedClasses
+compileJava.dependsOn compileGeneratedJava
+ideaModule.dependsOn "generateApi"

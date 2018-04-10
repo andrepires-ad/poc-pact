@@ -16,6 +16,19 @@ public class ProductWsDTO {
     */
     private String name;
 
+    public ProductWsDTO() {
+
+    }
+
+    private ProductWsDTO(Builder builder) {
+        setId(builder.id);
+        setName(builder.name);
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
 
     public String getId() {
         return id;
@@ -31,6 +44,28 @@ public class ProductWsDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public static final class Builder {
+        private String id;
+        private String name;
+
+        private Builder() {
+        }
+
+        public Builder id(String val) {
+            id = val;
+            return this;
+        }
+
+        public Builder name(String val) {
+            name = val;
+            return this;
+        }
+
+        public ProductWsDTO build() {
+            return new ProductWsDTO(this);
+        }
     }
 }
 

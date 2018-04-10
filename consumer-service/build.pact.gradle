@@ -1,0 +1,13 @@
+
+test {
+	systemProperty 'pact.rootDir', "$buildDir/pacts"
+}
+
+pactPublish.dependsOn test
+
+pact {
+	publish {
+		pactBrokerUrl = 'http://192.168.64.16:32033'
+		tags = [pactBrokerTag]
+	}
+}

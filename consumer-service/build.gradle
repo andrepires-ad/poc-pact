@@ -1,16 +1,29 @@
 buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
+	ext {
+		lombokVersion = '1.16.20'
+		retrofitVersion = "2.3.0"
+		javaxValidationVersion = '1.1.0.Final'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
 		classpath group: 'au.com.dius', name: 'pact-jvm-provider-gradle_2.12', version: '3.5.14'
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE")
 	}
 }
 
 plugins {
+	id 'java'
+	id 'idea'
 	id "au.com.dius.pact" version "3.5.14"
-	id "org.springframework.boot"
 }
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'maven-publish'
+
+group = 'com.appdirect.pact.consumer'
+version = '0.2.0'
 
 dependencyManagement {
 	imports {
@@ -18,31 +31,40 @@ dependencyManagement {
 	}
 }
 
+def getDockerTags() {
+	def tags = []
+	tags << project.version.toString()
+
+	if (!project.version.toString().endsWith("-SNAPSHOT")) {
+		// if it is not a SNAPSHOT, then also add the 'latest' tag
+		tags << "latest"
+	}
+	return tags
+}
+
 ext {
 	prNumber = project.properties['PR_NUMBER']
 	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
-	retrofitVersion = "2.3.0"
-	javaxValidationVersion = '1.1.0.Final'
-}
-
-pact {
-    publish {
-        pactDirectory = "$buildDir/pacts"
-        pactBrokerUrl = 'http://192.168.64.11:32033'
-        tags = [pactBrokerTag]
-    }
+	dockerRegistry = "docker.appdirect.tools"
+	artifactVersion = project.version.toString()
+	dockerName = "${dockerRegistry}/appdirect-pact-sample/consumer-service"
+	dockerTags = getDockerTags()
 }
 
 
-description = ''
+configurations {
+	generatedCompile
+}
 
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 dependencies {
 	compileOnly("org.projectlombok:lombok:${lombokVersion}")
 
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework.boot:spring-boot-starter-actuator")
 	compile('net.logstash.logback:logstash-logback-encoder:3.5')
-	compile('au.com.dius:pact-jvm-consumer-junit_2.12:3.5.14')
 
 	// retrofit
 	compileOnly("javax.validation:validation-api:${javaxValidationVersion}")
@@ -51,12 +73,23 @@ dependencies {
 
 	// test dependencies
 	testCompile("org.springframework.boot:spring-boot-starter-test")
-
+	testCompile('au.com.dius:pact-jvm-consumer-junit_2.12:3.5.14')
 	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.springframework.boot:spring-boot"
 
 	generatedCompile 'org.springframework.boot:spring-boot-starter-data-rest:2.0.1.RELEASE'
 }
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+repositories {
+	mavenLocal()
+	maven { url "http://repo.maven.apache.org/maven2" }
+	jcenter()
+}
+
 
 sourceSets {
 	generated {
@@ -72,3 +105,7 @@ sourceSets {
 	}
 }
 
+apply from: 'build.docker.gradle'
+apply from: "build.pact.gradle"
+apply from: 'build.springboot.gradle'
+apply from: 'build.publish.gradle'

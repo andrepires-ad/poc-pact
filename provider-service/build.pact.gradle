@@ -1,0 +1,39 @@
+
+// PACT
+
+// This will be called before the provider task
+//task startTheApp {
+//
+//}
+
+// This will be called after the provider task
+//task killTheApp {
+//
+//}
+
+pact {
+	serviceProviders {
+//		startProviderTask = startTheApp
+//		terminateProviderTask = killTheApp
+
+		"provider-service" {
+			protocol = 'http'
+			host = 'localhost'
+			port = '8080'
+			hasPactsFromPactBroker(getPactBrokerEndpoint())
+		}
+	}
+}
+
+String getPactBrokerEndpoint() {
+	return "http://" + getPactBrokerHost() + ":" + getPactBrokerPort()
+}
+
+int getPactBrokerPort() {
+	return 32033;
+}
+
+
+String getPactBrokerHost() {
+	return "192.168.64.16"
+}

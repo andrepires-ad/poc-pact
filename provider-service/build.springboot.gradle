@@ -1,0 +1,24 @@
+
+/**
+ * ********************************************************************************
+ * Spring Boot Configuration
+ * ********************************************************************************
+ */
+
+springBoot {
+	buildInfo {
+		additionalProperties = [
+				'version': project.version
+		]
+	}
+}
+
+bootRun {
+	// passing system property arguments to Spring Boot.
+	systemProperties = System.properties
+	classpath += sourceSets.generated.output
+}
+
+jar {
+	from sourceSets.generated.output
+}
