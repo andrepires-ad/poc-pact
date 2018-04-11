@@ -98,6 +98,7 @@ node {
     stage('Verify Pact contracts') {
         // stage to be performed by providers and it should be performed on all branches
         // Verifies the contracts published by all the consumers
+        // TODO In gradle, pactVerify should depend on pactTests
         withMasterBranch {
             try {
                 sh './gradlew pactVerify'

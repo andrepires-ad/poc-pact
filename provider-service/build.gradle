@@ -105,7 +105,6 @@ sourceSets {
 
 apply from: 'build.docker.gradle'
 apply from: 'build.swagger.gradle'
-//apply from: 'build.pact.gradle'
 apply from: 'build.springboot.gradle'
 apply from: 'build.publish.gradle'
 
