@@ -3,7 +3,9 @@ pactPublish.dependsOn test
 pact {
 	publish {
 		pactDirectory = "target/pacts"
-		pactBrokerUrl = "http://${pactBrokerHost}:${pactBrokerPort}"
+		pactBrokerUrl = "https://${pactBrokerHost}:${pactBrokerPort}"
+//		pactBrokerUsername = System.properties['PACTBROKER_USERNAME']
+//		pactBrokerPassword = System.properties['PACTBROKER_PASSWORD']
 		tags = [pactBrokerTag]
 	}
 }

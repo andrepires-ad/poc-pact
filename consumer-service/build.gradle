@@ -52,9 +52,9 @@ ext {
 	dockerTags = getDockerTags()
 
 	// PACT
-	pactBrokerHost = "192.168.64.16"
+	pactBrokerHost = "pact-broker.kops-ci.appdirect.tools"
 	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
-	pactBrokerPort = 32033
+	pactBrokerPort = 443
 }
 
 sourceCompatibility = 1.8
