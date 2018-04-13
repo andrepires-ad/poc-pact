@@ -25,7 +25,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'maven-publish'
 
 group = 'com.appdirect.pact.consumer'
-version = '0.2.0'
+version = '0.2.3'
 
 dependencyManagement {
 	imports {
@@ -53,7 +53,7 @@ ext {
 
 	// PACT
 	pactBrokerHost = "pact-broker.kops-ci.appdirect.tools"
-	pactBrokerTag = prNumber ? prNumber + "SNAPSHOT" : "master"
+	pactBrokerTags = prNumber ? [prNumber + "-SNAPSHOT"] : [project.version]
 	pactBrokerPort = 443
 }
 

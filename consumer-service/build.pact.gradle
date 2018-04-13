@@ -6,6 +6,12 @@ pact {
 		pactBrokerUrl = "https://${pactBrokerHost}:${pactBrokerPort}"
 //		pactBrokerUsername = System.properties['PACTBROKER_USERNAME']
 //		pactBrokerPassword = System.properties['PACTBROKER_PASSWORD']
-		tags = [pactBrokerTag]
+		tags = pactBrokerTags
+	}
+	reports {
+		defaultReports() // adds the standard console output
+
+		markdown // report in markdown format
+		json // report in json format
 	}
 }
