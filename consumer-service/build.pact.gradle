@@ -1,4 +1,4 @@
-pactPublish.dependsOn test
+//pactPublish.dependsOn test
 
 pact {
 	publish {
@@ -9,9 +9,9 @@ pact {
 		tags = pactBrokerTags
 	}
 	reports {
-		defaultReports() // adds the standard console output
-
-		markdown // report in markdown format
-		json // report in json format
+		// adds the standard console output
+		defaultReports()
+		markdown
+		json
 	}
 }

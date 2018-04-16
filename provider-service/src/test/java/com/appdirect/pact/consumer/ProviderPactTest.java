@@ -24,7 +24,7 @@ import com.appdirect.provider.model.ProductWsDTO;
 
 @RunWith(SpringRestPactRunner.class)
 @Provider("provider-service")
-@PactBroker
+@PactBroker(failIfNoPactsFound = false, tags="master")
 @ContextConfiguration(classes = Application.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ProviderPactTest {
@@ -43,7 +43,8 @@ public class ProviderPactTest {
                 Arrays.asList(
                         new ProductWsDTO().id("id-1").name("name-1"),
                         new ProductWsDTO().id("id-2").name("name-2"),
-                        new ProductWsDTO().id("id-3").name("name-3")
+                        new ProductWsDTO().id("id-3").name("name-3"),
+                        new ProductWsDTO().id("id-6").name("name-6")
                 )
         ));
     }
