@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import com.appdirect.pact.provider.service.products.DefaultProductService;
-import com.appdirect.pact.provider.service.products.ProductService;
+import com.appdirect.pact.provider.service.DefaultProductService;
+import com.appdirect.pact.provider.service.ProductService;
 
 @Configuration
 @ComponentScan

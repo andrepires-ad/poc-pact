@@ -49,6 +49,9 @@ definitions:
       name:
         description: 'The product name'
         type: string
+      content:
+        description: 'The product content'
+        type: string
 
 responses:
   ProductsResponse:

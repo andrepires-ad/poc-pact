@@ -1,9 +1,8 @@
 package com.appdirect.pact.consumer;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
 
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,8 +17,8 @@ import au.com.dius.pact.provider.junit.target.TestTarget;
 import au.com.dius.pact.provider.spring.SpringRestPactRunner;
 import au.com.dius.pact.provider.spring.target.SpringBootHttpTarget;
 import com.appdirect.pact.provider.Application;
-import com.appdirect.pact.provider.api.model.ProductWsDTO;
-import com.appdirect.pact.provider.service.products.ProductService;
+import com.appdirect.pact.provider.facade.ProductFacade;
+import com.appdirect.pact.provider.model.ProductDTO;
 
 @RunWith(SpringRestPactRunner.class)
 @Provider("provider-service")
@@ -31,22 +30,23 @@ public class ProviderPactTest {
     private static final String UUID = "e2490de5-5bd3-43d5-b7c4-526e33f71304";
 
     @MockBean
-    private ProductService productService;
+    private ProductFacade productFacade;
 
     @TestTarget
     public final Target target = new SpringBootHttpTarget();
 
     @State("product ids exist")
     public void myServiceReturnsProductsInAscendingOrder() {
-        reset(productService);
+        reset(productFacade);
 
-        when(productService.getProducts(Arrays.asList(UUID, UUID, UUID))).thenReturn(
-            Arrays.asList(
-                    new ProductWsDTO().id(UUID).name(UUID),
-                    new ProductWsDTO().id(UUID).name(UUID),
-                    new ProductWsDTO().id(UUID).name(UUID)
+        when(productFacade.getProducts(asList(UUID, UUID, UUID))).thenReturn(
+            asList(
+                    new ProductDTO().id(UUID).name(UUID).content(UUID),
+                    new ProductDTO().id(UUID).name(UUID).content(UUID),
+                    new ProductDTO().id(UUID).name(UUID).content(UUID)
             )
         );
+
     }
 
 }
