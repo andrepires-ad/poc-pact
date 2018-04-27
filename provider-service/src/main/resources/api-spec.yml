@@ -17,6 +17,17 @@ paths:
       tags:
         - products
       summary: Get product list
+      parameters:
+        - in: query
+          name: id
+          required: true
+          description: A comma-separated list of product IDs.
+          allowMultiple: true
+          type: array
+          collectionFormat: multi
+          items:
+            type: string
+          minItems: 1
       description: Returns a product list.
       operationId: getProducts
       responses:

@@ -25,7 +25,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'maven-publish'
 
 group = 'com.appdirect.pact.consumer'
-version = '0.2.5'
+version = '0.2.6-SNAPSHOT'
 
 dependencyManagement {
 	imports {
@@ -52,9 +52,7 @@ ext {
 	dockerTags = getDockerTags()
 
 	// PACT
-	pactBrokerHost = "pact-broker.kops-ci.appdirect.tools"
-	pactBrokerTags = project.version  =~ /-SNAPSHOT$/ ? [project.version + "-SNAPSHOT", "snapshot"] : [project.version, "master"]
-	pactBrokerPort = 443
+	pactBrokerTags = project.version  =~ /-SNAPSHOT$/ ? [project.version, "snapshot"] : [project.version, "master"]
 }
 
 sourceCompatibility = 1.8

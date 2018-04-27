@@ -1,8 +1,10 @@
 package com.appdirect.pact.consumer;
 
+import static java.util.Arrays.asList;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +33,9 @@ public class CartController {
 	public ResponseEntity<?> getProducts() {
 		try {
 			return ResponseEntity.ok(
-					productsApi.getProducts().execute().body()
+					productsApi.getProducts(
+								asList("1", "2", "3").stream().collect(Collectors.joining(",")))
+							.execute().body()
 					.stream()
 					.map(product -> new CartWsDTO(product, 1))
 					.collect(Collectors.toList())

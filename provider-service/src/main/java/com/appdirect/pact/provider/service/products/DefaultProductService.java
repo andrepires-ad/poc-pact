@@ -1,19 +1,21 @@
 package com.appdirect.pact.provider.service.products;
 
-import java.util.Arrays;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Collections;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import com.appdirect.provider.model.ProductWsDTO;
+import com.appdirect.pact.provider.api.model.ProductWsDTO;
 
 public class DefaultProductService implements ProductService {
 
 	@Override
-	public List<ProductWsDTO> getProducts() {
-		return Arrays.asList(
-				new ProductWsDTO().id("1").name("Sunscreen"),
-				new ProductWsDTO().id("2").name("Summer chair")
-		);
+	public List<ProductWsDTO> getProducts(List<String> ids) {
+		if (ids == null) {
+			return Collections.emptyList();
+		}
+		return ids.stream()
+				.map(id -> new ProductWsDTO().id(id).name("Product " + id))
+				.collect(toList());
 	}
 }

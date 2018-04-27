@@ -3,49 +3,54 @@ package com.appdirect.pact.consumer;
 import au.com.dius.pact.consumer.Pact;
 import au.com.dius.pact.consumer.PactProviderRuleMk2;
 import au.com.dius.pact.consumer.PactVerification;
+import au.com.dius.pact.consumer.dsl.PactDslJsonArray;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.model.RequestResponsePact;
 import com.appdirect.pact.consumer.apiclients.ProductWsDTO;
 import com.appdirect.pact.consumer.apiclients.ProductsApiImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import okhttp3.Request;
-import retrofit2.Call;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.assertNotNull;
 
 public class ConsumerProductsTest {
 
+	private static final String UUID = "e2490de5-5bd3-43d5-b7c4-526e33f71304";
 	@Rule
     public PactProviderRuleMk2 productsRule = new PactProviderRuleMk2("provider-service", "localhost", 8080, this);
 
-	@NotNull
-	private List<ProductWsDTO> getProductWsDTOS() {
-		return Arrays.asList(
-				ProductWsDTO.newBuilder().id("id-1").name("name-1").build(),
-				ProductWsDTO.newBuilder().id("id-2").name("name-2").build(),
-				ProductWsDTO.newBuilder().id("id-3").name("name-3").build()
-		);
+	private PactDslJsonArray buildPactResponse() {
+		PactDslJsonArray array = new PactDslJsonArray();
+
+		array
+			.object()
+				.uuid("id", UUID)
+				.stringType("name", UUID)
+			.closeObject()
+			.object()
+				.uuid("id", UUID)
+				.stringType("name", UUID)
+			.closeObject()
+			.object()
+				.uuid("id", UUID)
+				.stringType("name", UUID)
+			.closeObject()
+		.closeArray();
+
+		return array;
 	}
 
 	@Pact(consumer="consumer-service", provider="provider-service")
-	public RequestResponsePact createFragments(PactDslWithProvider builder) throws JsonProcessingException {
+	public RequestResponsePact createFragments(PactDslWithProvider builder) {
 
 		final Map<String, String> headers = ImmutableMap.<String, String>builder()
 				.put("Content-Type", "application/json")
@@ -53,18 +58,20 @@ public class ConsumerProductsTest {
 
 		return builder
 				//
-				.given("products in ascending order")
-				.uponReceiving("request for products in ascending order")
-				.path("/products")
+				.given("product ids exist")
+				.uponReceiving("a request for 3 products")
+				.path("/products/" + getProductIds())
 				.method("GET")
 				.headers(headers)
 				.willRespondWith()
 				.status(200)
-				.body(new ObjectMapper().writeValueAsString(
-						getProductWsDTOS().stream().sorted(comparing(ProductWsDTO::getId)).collect(toList())
-				))
+				.body(buildPactResponse())
 				.headers(headers)
 				.toPact();
+	}
+
+	private String getProductIds() {
+		return asList(UUID, UUID, UUID).stream().collect(joining(","));
 	}
 
 	@Test
@@ -73,10 +80,12 @@ public class ConsumerProductsTest {
 		final ProductsApiImpl productsApi = new ProductsApiImpl();
 		productsApi.setBaseUrl(productsRule.getConfig().url());
 
-		List<ProductWsDTO> list = productsApi.getProducts().execute().body();
+		List<ProductWsDTO> list = productsApi.getProducts(getProductIds()).execute().body();
 
-		assertTrue(list.size() > 0);
-		assertEquals(list.size(), getProductWsDTOS().size());
-		assertEquals(list.get(0).getId(), getProductWsDTOS().get(0).getId());
+		assertNotNull(list);
+		assertEquals(3, list.size());
+		assertEquals(UUID, list.get(0).getId());
+		assertEquals(UUID, list.get(1).getId());
+		assertEquals(UUID, list.get(2).getId());
     }
 }

@@ -16,9 +16,4 @@ springBoot {
 bootRun {
 	// passing system property arguments to Spring Boot.
 	systemProperties = System.properties
-	classpath += sourceSets.generated.output
-}
-
-jar {
-	from sourceSets.generated.output
 }

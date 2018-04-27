@@ -21,7 +21,7 @@ public class ProductsApiImpl implements ProductsApi {
 	private String baseUrl;
 
 	@Override
-	public Call<List<ProductWsDTO>> getProducts() {
+	public Call<List<ProductWsDTO>> getProducts(String ids) {
 
 
 		OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
@@ -36,7 +36,7 @@ public class ProductsApiImpl implements ProductsApi {
 
 		ProductsApi productsAPI = retrofit.create(ProductsApi.class);
 
-		return productsAPI.getProducts();
+		return productsAPI.getProducts(ids);
 	}
 
 	public String getBaseUrl() {

@@ -3,9 +3,7 @@
 pact {
 	publish {
 		pactDirectory = "target/pacts"
-		pactBrokerUrl = "https://${pactBrokerHost}:${pactBrokerPort}"
-//		pactBrokerUsername = System.properties['PACTBROKER_USERNAME']
-//		pactBrokerPassword = System.properties['PACTBROKER_PASSWORD']
+		pactBrokerUrl = "https://pactbroker-snapshot.kops-ci.appdirect.tools:443"
 		tags = pactBrokerTags
 	}
 	reports {

@@ -14,7 +14,7 @@ public interface ProductsApi {
   @Headers({
     "Content-Type:application/json"
   })
-  @GET("/products")
-  Call<List<ProductWsDTO>> getProducts();
+  @GET("/products/{ids}")
+  Call<List<ProductWsDTO>> getProducts(@Path(value = "ids") String ids);
 
 }
