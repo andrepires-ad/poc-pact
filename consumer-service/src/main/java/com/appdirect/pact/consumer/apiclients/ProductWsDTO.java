@@ -12,9 +12,15 @@ public class ProductWsDTO {
     private String id;
 
     /**
-    * The product name
-    */
+     * The product name
+     */
     private String name;
+
+
+    /**
+     * The product name
+     */
+    private String content;
 
     public ProductWsDTO() {
 
@@ -46,9 +52,18 @@ public class ProductWsDTO {
         this.name = name;
     }
 
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public static final class Builder {
         private String id;
         private String name;
+        private String content;
 
         private Builder() {
         }
@@ -60,6 +75,12 @@ public class ProductWsDTO {
 
         public Builder name(String val) {
             name = val;
+            return this;
+        }
+
+
+        public Builder content(String val) {
+            content = val;
             return this;
         }
 

@@ -35,14 +35,17 @@ public class ConsumerProductsTest {
 			.object()
 				.uuid("id", UUID)
 				.stringType("name", UUID)
+				.stringType("content", UUID)
 			.closeObject()
 			.object()
 				.uuid("id", UUID)
 				.stringType("name", UUID)
+				.stringType("content", UUID)
 			.closeObject()
 			.object()
 				.uuid("id", UUID)
 				.stringType("name", UUID)
+				.stringType("content", UUID)
 			.closeObject()
 		.closeArray();
 
